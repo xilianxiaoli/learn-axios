@@ -5,11 +5,13 @@
 </template>
 <script>
 import axios from "axios";
+const CancelToken = axios.CancelToken;
+const source = CancelToken.source();
 // 添加请求拦截器
 axios.interceptors.request.use(
     function (config) {
         // alert(11)
-        console.log("interceptors.request");
+        // console.log("interceptors.request");
         // 在发送请求之前做些什么
         return config;
     },
@@ -21,7 +23,8 @@ axios.interceptors.request.use(
 axios.interceptors.request.use(
     function (config) {
         // alert(22)
-        console.log("interceptors.request222");
+        // console.log("interceptors.request222");
+        // source.cancel("Operation canceled by the user.");
         // 在发送请求之前做些什么
         return config;
     },
@@ -40,6 +43,7 @@ axios.interceptors.response.use(
     },
     function (error) {
         // 对响应错误做点什么
+        console.log("response one error:", error);
         return Promise.reject(error);
     }
 );
@@ -51,7 +55,8 @@ axios.interceptors.response.use(
     },
     function (error) {
         // 对响应错误做点什么
-        return Promise.reject(error);
+        console.log("response two error:", error);
+        // return Promise.reject(error);
     }
 );
 export default {
@@ -68,7 +73,9 @@ export default {
                         params: {
                             ID: 12345
                         },
-                        transformRequest: [this.transformRequest]
+                        // transformRequest: [this.transformRequest],
+                        transformResponse: [this.transformResponse],
+                        cancelToken: source.token
                     }
                 )
                 .then(function (response) {
@@ -82,6 +89,9 @@ export default {
             // debugger
             console.log(data, headers);
             headers.xxxx = "xxxx";
+            return data;
+        },
+        transformResponse(data) {
             return data;
         }
     }

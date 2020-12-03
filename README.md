@@ -35,15 +35,65 @@ while (chain.length) {
 ```
 
 ### 转换请求数据和响应数据
+dispatchRequest 函数是核心处理函数
 1. 请求前数据处理
-transformRequest 可以在发起请求前对请求报文和请求头做处理，官方默认了一个 transformRequest 方法，若用户没有配置这个选项则会使用默认的这个函数
+transformRequest 可以在发起请求前对请求报文和请求头做处理，官方默认了一个 transformRequest 方法，若用户没有配置这个选项则会使用默认的函数，axios会默认设置 Content-Type 就是在这里处理
+```javascript
+if (utils.isURLSearchParams(data)) {
+      setContentTypeIfUnset(headers, 'application/x-www-form-urlencoded;charset=utf-8');
+      return data.toString();
+    }
+    if (utils.isObject(data)) {
+      setContentTypeIfUnset(headers, 'application/json;charset=utf-8');
+      return JSON.stringify(data);
+    }
+```
+2. 请求后的数据处理
+transformResponse 自定义函数，对返回的报文做处理，跟 transformRequest 一样，也有个默认的函数，axios会默认帮我们把返回的json字符串转换成对象，这一操作就是在默认的这个函数中处理的，若用户自定义的transformResponse，那么就不调用默认的处理函数
 
-transformResponse
+3. 因为是通过 promise.then 的链式调用的，所以若想每个拦截器的 reject 函数都能被执行，就需要在reject函数中 Promise.reject(error) 或者 抛出异常
 
 ### 关于配置对象的合并
 
 ### 取消请求
+根据规范 http 请求一旦发起就不能被取消，`https://github.com/tc39/proposal-cancelable-promises` 详见这个被废弃的规范，既然标准不支持，那么 axios 便基于这一规范实现了 CancelToken
+CancelToken 的逻辑
+1. 第一步构造 cancelToken对象  和 cancel函数，在请求的 config 中配置上 cancelToken对象，cancel 是一个函数们可以接收取消时候的文字描述，
+```javascript
+executor(function cancel(message) {
+    if (token.reason) {
+      // Cancellation has already been requested
+      return;
+    }
+
+    token.reason = new Cancel(message);
+    resolvePromise(token.reason);
+  });
+```
+
+1. cancel 函数理论上可以在任意地方执行，不过想要拦截请求一般是放在request 拦截器中，请求前的拦截器的实现里不会对cancel做判断，而是在 dispatchRequest 里发起网络请求前做判断 
+```javascript
+function throwIfCancellationRequested(config) {
+  if (config.cancelToken) {
+    config.cancelToken.throwIfRequested();
+  }
+}
+CancelToken.prototype.throwIfRequested = function throwIfRequested() {
+  if (this.reason) {
+    throw this.reason;
+  }
+};
+```
+可知，cancel 的时候生成了 cancel 对象，在检查的时候先判断参数中是否配置了cancelToken，在判断是否生成了 cancel 对象，若都符合，则抛出异常，这样一来后续的请求将不会发送，response 的成功回调也不会执行。
+
 
 ### 客户端支持防御 XSRF
 
 ### paramsSerializer 序列化的作用？ 为什么需要序列化
+
+## todo
+application/x-www-form-urlencoded  输出的数据格式是什么样的？
+
+
+## 有意思的工具类
+1. utils.forEach
