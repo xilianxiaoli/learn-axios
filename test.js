@@ -13,7 +13,7 @@ function f2(){
 
 function fe(){
     console.log('fe reject')
-    throw 'f error'
+    // throw 'f error'
 }
 
 function f2e(){
@@ -23,4 +23,6 @@ function f2e(){
 p = p.then(f)
 p = p.then(f1,fe)
 p = p.then(f2,f2e)
-return p;
+// return p;
+
+console.log(typeof f)

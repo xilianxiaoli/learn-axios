@@ -88,7 +88,7 @@ CancelToken.prototype.throwIfRequested = function throwIfRequested() {
 
 
 ### 客户端支持防御 XSRF
-
+https://tech.meituan.com/2018/10/11/fe-security-csrf.html
 ### paramsSerializer 序列化的作用？ 为什么需要序列化
 
 ## todo
