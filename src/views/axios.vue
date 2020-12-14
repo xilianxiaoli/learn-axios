@@ -60,6 +60,9 @@ axios.interceptors.response.use(
     }
 );
 export default {
+    mounted(){
+        document.cookie="username=John Doe";
+    },
     methods: {
         send() {
             axios
@@ -70,12 +73,14 @@ export default {
                         lastName: "Flintstone"
                     },
                     {
+                        baseURL: "http://127.0.0.1:3000/",
                         params: {
                             ID: 12345
                         },
                         // transformRequest: [this.transformRequest],
                         transformResponse: [this.transformResponse],
-                        cancelToken: source.token
+                        cancelToken: source.token,
+                        "withCredentials": true
                     }
                 )
                 .then(function (response) {

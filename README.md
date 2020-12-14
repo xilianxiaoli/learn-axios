@@ -89,6 +89,21 @@ CancelToken.prototype.throwIfRequested = function throwIfRequested() {
 
 ### 客户端支持防御 XSRF
 https://tech.meituan.com/2018/10/11/fe-security-csrf.html
+双重cookie验证，在原先登录凭证 cookie 的前提下，新增一个由接口或页面写入到 cookie 的值，在发起请求的时候，在从 cookie 中获取到这个值写入到请求头上。
+axios 的 xsrf 配置就是用于简化获取cookie中的值和写入header中的这两步操作。
+代码实现上比较简单
+```javascript
+// Add xsrf header
+var xsrfValue = (config.withCredentials || isURLSameOrigin(fullPath)) && config.xsrfCookieName ?
+  cookies.read(config.xsrfCookieName) :
+  undefined;
+
+if (xsrfValue) {
+  requestHeaders[config.xsrfHeaderName] = xsrfValue;
+}
+```
+tips： axios 封装的 cookies 可以借鉴用于项目中
+
 ### paramsSerializer 序列化的作用？ 为什么需要序列化
 
 ## todo
